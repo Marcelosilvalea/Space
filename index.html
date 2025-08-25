@@ -152,7 +152,6 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÕES E ELEMENTOS DO JOGO ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -172,7 +171,6 @@
         let gameRunning = false;
         let animationFrameId;
 
-        // --- JOGADOR ---
         const player = {
             x: canvas.width / 2 - 25,
             y: canvas.height - 60,
@@ -185,14 +183,14 @@
 
         function drawPlayer() {
             ctx.fillStyle = player.color;
-            // Corpo da nave
+        
             ctx.beginPath();
             ctx.moveTo(player.x + player.width / 2, player.y);
             ctx.lineTo(player.x, player.y + player.height);
             ctx.lineTo(player.x + player.width, player.y + player.height);
             ctx.closePath();
             ctx.fill();
-            // Cockpit
+        
             ctx.fillStyle = '#000';
             ctx.fillRect(player.x + player.width / 2 - 5, player.y + 10, 10, 10);
         }
@@ -200,7 +198,7 @@
         function movePlayer() {
             player.x += player.dx;
 
-            // Limites da tela
+            
             if (player.x < 0) {
                 player.x = 0;
             }
@@ -209,7 +207,7 @@
             }
         }
 
-        // --- PROJÉTEIS ---
+        
         const bullets = [];
         const bulletSpeed = 10;
         let canShoot = true;
@@ -245,7 +243,6 @@
             });
         }
         
-        // --- INIMIGOS ---
         const invaders = [];
         const invaderRows = 4;
         const invaderCols = 8;
@@ -258,7 +255,7 @@
         let invaderDirection = 1;
 
         function createInvaders() {
-            invaders.length = 0; // Limpa o array
+            invaders.length = 0; 
             for (let c = 0; c < invaderCols; c++) {
                 for (let r = 0; r < invaderRows; r++) {
                     invaders.push({
@@ -266,7 +263,7 @@
                         y: r * (invaderHeight + invaderPadding) + invaderOffsetTop,
                         width: invaderWidth,
                         height: invaderHeight,
-                        color: 'hsl(' + (r * 30) + ', 100%, 50%)' // Cores diferentes por linha
+                        color: `hsl(${r * 30}, 100%, 50%)` 
                     });
                 }
             }
@@ -276,7 +273,7 @@
             invaders.forEach(invader => {
                 ctx.fillStyle = invader.color;
                 ctx.fillRect(invader.x, invader.y, invader.width, invader.height);
-                // Olhos
+                
                 ctx.fillStyle = '#000';
                 ctx.fillRect(invader.x + 8, invader.y + 10, 5, 5);
                 ctx.fillRect(invader.x + 27, invader.y + 10, 5, 5);
@@ -290,7 +287,7 @@
                 if (invader.x + invader.width > canvas.width || invader.x < 0) {
                     edgeReached = true;
                 }
-                // Checa se os inimigos chegaram na base
+                
                 if (invader.y + invader.height > player.y) {
                     gameOver();
                 }
@@ -304,12 +301,12 @@
             }
         }
         
-        // --- TIROS INIMIGOS ---
+        
         const enemyBullets = [];
         const enemyBulletSpeed = 5;
 
         function enemyShoot() {
-            if (invaders.length > 0 && Math.random() < 0.02) { // Chance de tiro
+            if (invaders.length > 0 && Math.random() < 0.01) {
                 const randomInvader = invaders[Math.floor(Math.random() * invaders.length)];
                 enemyBullets.push({
                     x: randomInvader.x + randomInvader.width / 2 - 2,
@@ -338,9 +335,9 @@
             });
         }
 
-        // --- DETECÇÃO DE COLISÃO ---
+        
         function checkCollisions() {
-            // Tiro do jogador atinge inimigo
+            
             for (let i = bullets.length - 1; i >= 0; i--) {
                 for (let j = invaders.length - 1; j >= 0; j--) {
                     if (
@@ -358,7 +355,7 @@
                 }
             }
 
-            // Tiro inimigo atinge jogador
+            
             for (let i = enemyBullets.length - 1; i >= 0; i--) {
                 const bullet = enemyBullets[i];
                 if (
@@ -377,7 +374,7 @@
             }
         }
         
-        // --- LÓGICA DO JOGO ---
+        
         function updateUI() {
             scoreEl.textContent = `SCORE: ${score}`;
             levelEl.textContent = `LEVEL: ${level}`;
@@ -385,13 +382,18 @@
         }
 
         function nextLevel() {
-            level++;
-            invaderSpeed += 0.5;
-            playerHealth = 100; // Restaura a vida no próximo nível
+            if(level < 10){
+          level++;
+            invaderSpeed += 0.1;
+            playerHealth = 100; 
             bullets.length = 0;
             enemyBullets.length = 0;
             updateUI();
             createInvaders();
+        }
+        else{
+          alert("Parabéns, você salvou a Terra!");
+        }
         }
 
         function gameOver() {
@@ -421,7 +423,7 @@
             gameLoop();
         }
 
-        // --- LOOP PRINCIPAL DO JOGO ---
+  
         function gameLoop() {
             if (!gameRunning) return;
 
@@ -448,7 +450,7 @@
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        // --- CONTROLES ---
+        
         function keyDown(e) {
             if (!gameRunning) return;
             if (e.key === 'ArrowRight' || e.key === 'd') {
@@ -456,7 +458,7 @@
             } else if (e.key === 'ArrowLeft' || e.key === 'a') {
                 player.dx = -player.speed;
             } else if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault(); // Evita que a página role
+                e.preventDefault(); 
                 shoot();
             }
         }
@@ -466,18 +468,16 @@
                 e.key === 'ArrowRight' ||
                 e.key === 'd' ||
                 e.key === 'ArrowLeft' ||
-                e.key === 'a'
-            ) {
+                e.key === 'a') 
+                {
                 player.dx = 0;
             }
         }
-
         document.addEventListener('keydown', keyDown);
         document.addEventListener('keyup', keyUp);
-        
+      
         startButton.addEventListener('click', startGame);
         restartButton.addEventListener('click', startGame);
-
     </script>
 </body>
 </html>
