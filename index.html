@@ -66,7 +66,7 @@
             background-color: #f00;
             transition: width 0.2s linear;
         }
-        #game-over-screen, #start-screen {
+        #game-over-screen, #start-screen, #game-won-screen {
             position: absolute;
             top: 0;
             left: 0;
@@ -86,12 +86,12 @@
             text-shadow: 0 0 10px #f00;
             margin-bottom: 20px;
         }
-        #start-screen h1 {
+        #start-screen h1, #game-won-screen h1 {
             color: #0f0;
-             text-shadow: 0 0 10px #0f0;
+            text-shadow: 0 0 10px #0f0;
         }
-        #game-over-screen p, #start-screen p {
-            font-size: 16px;
+        #game-over-screen p, #start-screen p, #game-won-screen p {
+            font-size: 26px;
             margin-bottom: 30px;
         }
         #start-screen .controls {
@@ -147,10 +147,17 @@
 
     <div id="game-over-screen" style="display: none;">
         <h1>GAME OVER</h1>
-        <p>Sua pontuação final foi: <span id="finalScore">0</span></p>
-        <button class="restart-button" id="restartButton">JOGAR NOVAMENTE</button>
+        <p>Sua pontuação final foi: <span id="finalScoreGameOver">0</span></p>
+        <button class="restart-button" id="restartButtonGameOver">JOGAR NOVAMENTE</button>
     </div>
 
+    <div id="game-won-screen" style="display: none;">
+        <h1>VITÓRIA!</h1>
+        <p>Você salvou a Terra!</p>
+        <p>Sua pontuação final foi: <span id="finalScoreVictory">0</span></p>
+        <button class="restart-button" id="restartButtonVictory">JOGAR NOVAMENTE</button>
+    </div>
+    
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -161,15 +168,20 @@
         
         const startScreen = document.getElementById('start-screen');
         const gameOverScreen = document.getElementById('game-over-screen');
+        const gameWonScreen = document.getElementById('game-won-screen');
         const startButton = document.getElementById('startButton');
-        const restartButton = document.getElementById('restartButton');
-        const finalScoreEl = document.getElementById('finalScore');
+        
+        const restartButtonGameOver = document.getElementById('restartButtonGameOver');
+        const restartButtonVictory = document.getElementById('restartButtonVictory');
+        const finalScoreGameOver = document.getElementById('finalScoreGameOver');
+        const finalScoreVictory = document.getElementById('finalScoreVictory');
 
         let score = 0;
         let level = 1;
         let playerHealth = 100;
         let gameRunning = false;
         let animationFrameId;
+        let enemyShootInterval;
 
         const player = {
             x: canvas.width / 2 - 25,
@@ -180,70 +192,14 @@
             dx: 0,
             color: '#00ff00'
         };
-
-        function drawPlayer() {
-            ctx.fillStyle = player.color;
         
-            ctx.beginPath();
-            ctx.moveTo(player.x + player.width / 2, player.y);
-            ctx.lineTo(player.x, player.y + player.height);
-            ctx.lineTo(player.x + player.width, player.y + player.height);
-            ctx.closePath();
-            ctx.fill();
-        
-            ctx.fillStyle = '#000';
-            ctx.fillRect(player.x + player.width / 2 - 5, player.y + 10, 10, 10);
-        }
+        const keysPressed = new Set();
 
-        function movePlayer() {
-            player.x += player.dx;
-
-            
-            if (player.x < 0) {
-                player.x = 0;
-            }
-            if (player.x + player.width > canvas.width) {
-                player.x = canvas.width - player.width;
-            }
-        }
-
-        
-        const bullets = [];
+        let bullets = [];
         const bulletSpeed = 10;
-        let canShoot = true;
+        let lastShot = 0;
 
-        function shoot() {
-            if (canShoot) {
-                bullets.push({
-                    x: player.x + player.width / 2 - 2.5,
-                    y: player.y,
-                    width: 5,
-                    height: 15,
-                    color: '#ffff00'
-                });
-                canShoot = false;
-                setTimeout(() => { canShoot = true; }, 300); // Cooldown do tiro
-            }
-        }
-
-        function updateBullets() {
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                const bullet = bullets[i];
-                bullet.y -= bulletSpeed;
-                if (bullet.y < 0) {
-                    bullets.splice(i, 1);
-                }
-            }
-        }
-
-        function drawBullets() {
-            bullets.forEach(bullet => {
-                ctx.fillStyle = bullet.color;
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-            });
-        }
-        
-        const invaders = [];
+        let invaders = [];
         const invaderRows = 4;
         const invaderCols = 8;
         const invaderWidth = 40;
@@ -254,8 +210,78 @@
         let invaderSpeed = 1;
         let invaderDirection = 1;
 
+        let enemyBullets = [];
+        const enemyBulletSpeed = 5;
+
+        
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width / 2, player.y);
+            ctx.lineTo(player.x, player.y + player.height);
+            ctx.lineTo(player.x + player.width, player.y + player.height);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(player.x + player.width / 2 - 5, player.y + 10, 10, 10);
+        }
+        
+        function drawBullets() {
+            ctx.fillStyle = '#ffff00';
+            bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
+        }
+        
+        function drawInvaders() {
+            invaders.forEach(inv => {
+                ctx.fillStyle = inv.color;
+                ctx.fillRect(inv.x, inv.y, inv.width, inv.height);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(inv.x + 8, inv.y + 10, 5, 5);
+                ctx.fillRect(inv.x + 27, inv.y + 10, 5, 5);
+            });
+        }
+
+        function drawEnemyBullets() {
+            ctx.fillStyle = '#ff0000';
+            enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
+        }
+
+       
+        function movePlayer() {
+            player.dx = 0;
+            if (keysPressed.has('ArrowLeft') || keysPressed.has('a')) {
+                player.dx = -player.speed;
+            }
+            if (keysPressed.has('ArrowRight') || keysPressed.has('d')) {
+                player.dx = player.speed;
+            }
+            
+            player.x += player.dx;
+            
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+            if (keysPressed.has(' ') || keysPressed.has('Spacebar')) {
+                shoot();
+            }
+        }
+        
+        function shoot() {
+            const now = Date.now();
+            if (now - lastShot > 300) {
+                lastShot = now;
+                bullets.push({
+                    x: player.x + player.width / 2 - 2.5,
+                    y: player.y,
+                    width: 5,
+                    height: 15,
+                });
+            }
+        }
+        
         function createInvaders() {
-            invaders.length = 0; 
+            invaders = [];
+            invaderDirection = 1;
             for (let c = 0; c < invaderCols; c++) {
                 for (let r = 0; r < invaderRows; r++) {
                     invaders.push({
@@ -263,144 +289,140 @@
                         y: r * (invaderHeight + invaderPadding) + invaderOffsetTop,
                         width: invaderWidth,
                         height: invaderHeight,
-                        color: `hsl(${r * 30}, 100%, 50%)` 
+                        color: `hsl(${r * 30}, 100%, 50%)`
                     });
                 }
             }
         }
 
-        function drawInvaders() {
-            invaders.forEach(invader => {
-                ctx.fillStyle = invader.color;
-                ctx.fillRect(invader.x, invader.y, invader.width, invader.height);
-                
-                ctx.fillStyle = '#000';
-                ctx.fillRect(invader.x + 8, invader.y + 10, 5, 5);
-                ctx.fillRect(invader.x + 27, invader.y + 10, 5, 5);
+        function updateGameObjects() {
+            
+            bullets.forEach(b => {
+                b.y -= bulletSpeed;
+                if (b.y < 0) b.toRemove = true;
             });
-        }
 
-        function updateInvaders() {
+           
             let edgeReached = false;
-            invaders.forEach(invader => {
-                invader.x += invaderSpeed * invaderDirection;
-                if (invader.x + invader.width > canvas.width || invader.x < 0) {
+            invaders.forEach(inv => {
+                inv.x += invaderSpeed * invaderDirection;
+                if (inv.x + inv.width > canvas.width || inv.x < 0) {
                     edgeReached = true;
                 }
-                
-                if (invader.y + invader.height > player.y) {
-                    gameOver();
+                if (inv.y + inv.height > player.y) {
+                    playerHealth = 0;
                 }
             });
 
             if (edgeReached) {
                 invaderDirection *= -1;
-                invaders.forEach(invader => {
-                    invader.y += invaderHeight / 2;
-                });
+                invaders.forEach(inv => { inv.y += invaderHeight / 2; });
             }
+
+            
+            enemyBullets.forEach(b => {
+                b.y += enemyBulletSpeed;
+                if (b.y > canvas.height) b.toRemove = true;
+            });
         }
-        
-        
-        const enemyBullets = [];
-        const enemyBulletSpeed = 5;
 
         function enemyShoot() {
-            if (invaders.length > 0 && Math.random() < 0.01) {
+            if (gameRunning && invaders.length > 0) {
                 const randomInvader = invaders[Math.floor(Math.random() * invaders.length)];
                 enemyBullets.push({
                     x: randomInvader.x + randomInvader.width / 2 - 2,
                     y: randomInvader.y + randomInvader.height,
                     width: 4,
                     height: 10,
-                    color: '#ff0000'
                 });
             }
         }
 
-        function updateEnemyBullets() {
-            for (let i = enemyBullets.length - 1; i >= 0; i--) {
-                const bullet = enemyBullets[i];
-                bullet.y += enemyBulletSpeed;
-                if (bullet.y > canvas.height) {
-                    enemyBullets.splice(i, 1);
-                }
-            }
-        }
-
-        function drawEnemyBullets() {
-            enemyBullets.forEach(bullet => {
-                ctx.fillStyle = bullet.color;
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-            });
-        }
-
-        
         function checkCollisions() {
-            
-            for (let i = bullets.length - 1; i >= 0; i--) {
+       
+            bullets.forEach(bullet => {
+                if (bullet.toRemove) return; 
+                
                 for (let j = invaders.length - 1; j >= 0; j--) {
-                    if (
-                        bullets[i] && invaders[j] &&
-                        bullets[i].x < invaders[j].x + invaders[j].width &&
-                        bullets[i].x + bullets[i].width > invaders[j].x &&
-                        bullets[i].y < invaders[j].y + invaders[j].height &&
-                        bullets[i].y + bullets[i].height > invaders[j].y
-                    ) {
-                        invaders.splice(j, 1);
-                        bullets.splice(i, 1);
-                        score += 10;
-                        updateUI();
+                    const invader = invaders[j];
+                    
+                    if (bullet.x < invader.x + invader.width &&
+                        bullet.x + bullet.width > invader.x &&
+                        bullet.y < invader.y + invader.height &&
+                        bullet.y + bullet.height > invader.y) {
+                        
+                        invader.toRemove = true; 
+                        bullet.toRemove = true;  
+                        
+                        score += 20;
+                        break; 
                     }
                 }
-            }
+            });
 
             
-            for (let i = enemyBullets.length - 1; i >= 0; i--) {
-                const bullet = enemyBullets[i];
-                if (
-                    bullet.x < player.x + player.width &&
+            enemyBullets.forEach(bullet => {
+                if (bullet.toRemove) return;
+
+                if (bullet.x < player.x + player.width &&
                     bullet.x + bullet.width > player.x &&
                     bullet.y < player.y + player.height &&
-                    bullet.y + bullet.height > player.y
-                ) {
-                    enemyBullets.splice(i, 1);
-                    playerHealth -= 25;
-                    updateUI();
-                    if (playerHealth <= 0) {
-                        gameOver();
-                    }
+                    bullet.y + bullet.height > player.y) {
+                    
+                    bullet.toRemove = true;
+                    playerHealth -= 10;
                 }
+            });
+
+            
+            bullets = bullets.filter(b => !b.toRemove);
+            invaders = invaders.filter(i => !i.toRemove);
+            enemyBullets = enemyBullets.filter(b => !b.toRemove);
+
+            if (playerHealth <= 0) {
+                playerHealth = 0;
+                gameOver();
             }
         }
-        
-        
+
         function updateUI() {
             scoreEl.textContent = `SCORE: ${score}`;
             levelEl.textContent = `LEVEL: ${level}`;
             healthBarEl.style.width = `${playerHealth}%`;
         }
 
-        function nextLevel() {
-            if(level < 10){
-          level++;
-            invaderSpeed += 0.1;
-            playerHealth = 100; 
-            bullets.length = 0;
-            enemyBullets.length = 0;
-            updateUI();
-            createInvaders();
-        }
-        else{
-          alert("Parabéns, você salvou a Terra!");
-        }
-        }
+        const maxLevel = 10;
+        let nextLevelPending = false;
 
+        function nextLevel() {
+            if (level < maxLevel) {
+                level++;
+                invaderSpeed = Math.min(invaderSpeed + 0.2, 3);
+                playerHealth = 100;
+                bullets = [];
+                enemyBullets = [];
+                createInvaders();
+            } else {
+                gameWon();
+            }
+            nextLevelPending = false;
+        }
+        
         function gameOver() {
+            if (!gameRunning) return;
             gameRunning = false;
             cancelAnimationFrame(animationFrameId);
-            finalScoreEl.textContent = score;
+            clearInterval(enemyShootInterval);
+            finalScoreGameOver.textContent = score;
             gameOverScreen.style.display = 'flex';
+        }
+
+        function gameWon() {
+            gameRunning = false;
+            cancelAnimationFrame(animationFrameId);
+            clearInterval(enemyShootInterval);
+            finalScoreVictory.textContent = score;
+            gameWonScreen.style.display = 'flex';
         }
 
         function resetGame() {
@@ -408,76 +430,65 @@
             level = 1;
             playerHealth = 100;
             invaderSpeed = 1;
-            bullets.length = 0;
-            enemyBullets.length = 0;
+            bullets = [];
+            enemyBullets = [];
             player.x = canvas.width / 2 - 25;
-            updateUI();
+            nextLevelPending = false;
             createInvaders();
+            updateUI();
         }
-
+        
         function startGame() {
             resetGame();
             gameRunning = true;
             startScreen.style.display = 'none';
             gameOverScreen.style.display = 'none';
+            gameWonScreen.style.display = 'none';
+            clearInterval(enemyShootInterval);
+            enemyShootInterval = setInterval(enemyShoot, 1000);
             gameLoop();
         }
-
-  
+        
+       
         function gameLoop() {
             if (!gameRunning) return;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            drawPlayer();
-            updateBullets();
-            drawBullets();
             
-            updateInvaders();
-            drawInvaders();
-            
-            enemyShoot();
-            updateEnemyBullets();
-            drawEnemyBullets();
-
+        
             movePlayer();
+            updateGameObjects();
             checkCollisions();
+            
+          
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawBullets();
+            drawInvaders();
+            drawEnemyBullets();
+            
+            
+            updateUI();
 
-            if (invaders.length === 0) {
-                nextLevel();
+            if (invaders.length === 0 && !nextLevelPending) {
+                nextLevelPending = true;
+                setTimeout(nextLevel, 1500);
             }
 
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        
-        function keyDown(e) {
-            if (!gameRunning) return;
-            if (e.key === 'ArrowRight' || e.key === 'd') {
-                player.dx = player.speed;
-            } else if (e.key === 'ArrowLeft' || e.key === 'a') {
-                player.dx = -player.speed;
-            } else if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault(); 
-                shoot();
-            }
-        }
+       
+        document.addEventListener('keydown', e => {
+            if (e.key === ' ' || e.key === 'Spacebar') e.preventDefault();
+            keysPressed.add(e.key);
+        });
 
-        function keyUp(e) {
-            if (
-                e.key === 'ArrowRight' ||
-                e.key === 'd' ||
-                e.key === 'ArrowLeft' ||
-                e.key === 'a') 
-                {
-                player.dx = 0;
-            }
-        }
-        document.addEventListener('keydown', keyDown);
-        document.addEventListener('keyup', keyUp);
-      
+        document.addEventListener('keyup', e => {
+            keysPressed.delete(e.key);
+        });
+        
         startButton.addEventListener('click', startGame);
-        restartButton.addEventListener('click', startGame);
+        restartButtonGameOver.addEventListener('click', startGame);
+        restartButtonVictory.addEventListener('click', startGame);
     </script>
 </body>
 </html>
