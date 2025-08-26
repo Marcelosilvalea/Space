@@ -207,11 +207,11 @@
         const invaderPadding = 20;
         const invaderOffsetTop = 50;
         const invaderOffsetLeft = 60;
-        let invaderSpeed = 1;
+        let invaderSpeed = 2;
         let invaderDirection = 1;
 
         let enemyBullets = [];
-        const enemyBulletSpeed = 5;
+        const enemyBulletSpeed = 10;
 
         
         function drawPlayer() {
@@ -397,7 +397,7 @@
         function nextLevel() {
             if (level < maxLevel) {
                 level++;
-                invaderSpeed = Math.min(invaderSpeed + 0.2, 3);
+                invaderSpeed += 0.5;
                 playerHealth = 100;
                 bullets = [];
                 enemyBullets = [];
