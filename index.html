@@ -1,585 +1,153 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Invaders</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: 'Press Start 2P', cursive;
-            flex-direction: column;
-            image-rendering: pixelated;
-        }
-
-        #game-container {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            border: 2px solid #333;
-            background-color: #0a0a0a;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
-
-        #ui-panel {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            box-sizing: border-box;
-            background-color: #0a0a0a;
-            z-index: 10;
-        }
-        
-        #score-info, #level-info, #lives-info {
-            color: #0f0;
-            text-shadow: 0 0 5px #0f0;
-            font-size: 14px;
-        }
-        
-        canvas {
-            background-color: #000;
-            display: block;
-            border-radius: 4px;
-        }
-
-        #game-over-screen, #start-screen, #game-won-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            z-index: 100;
-        }
-
-        #game-over-screen h1, #start-screen h1 {
-            color: #f00;
-            font-size: 48px;
-            text-shadow: 0 0 10px #f00;
-            margin-bottom: 20px;
-        }
-
-        #start-screen h1, #game-won-screen h1 {
-            color: #0f0;
-            text-shadow: 0 0 10px #0f0;
-        }
-
-        #game-over-screen p, #start-screen p, #game-won-screen p {
-            font-size: 26px;
-            margin-bottom: 30px;
-        }
-
-        #start-screen .controls {
-            font-size: 14px;
-            color: #ccc;
-            line-height: 1.8;
-        }
-
-        .restart-button {
-            padding: 15px 30px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 18px;
-            color: #000;
-            background-color: #0f0;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            text-shadow: 0 0 5px #fff;
-            box-shadow: 0 0 15px #0f0;
-        }
-
-        .restart-button:hover {
-            background-color: #fff;
-            color: #000;
-            box-shadow: 0 0 25px #fff;
-        }
-    </style>
+    <title>Amor Verdadeiro</title>
+  
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="heart-container">
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+        <div class="heart">❤️</div>
+    </div>
 
-    <audio id="laserShot">
-        <source src="laser-shot-ingame-230500.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="explosion">
-        <source src="explosion-312361.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="startSound">
-        <source src="morphed-metal-discharged-cinematic-trailer-sound-effects-124763.mp3" type="audio/mpeg">
-    </audio>
-
-    <div id="game-container">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <div id="ui-panel">
-            <div id="score-info">SCORE: 0</div>
-            <div id="level-info">LEVEL: 1</div>
-            <div id="lives-info">LIVES: 5</div>
+    <div class="container">
+        <h1>Para o meu amor...</h1>
+        <p>Cada momento ao seu lado é especial. Você é o meu verdadeiro amor.</p>
+        
+        <div class="photo-card">
+            <img src="1.jpeg" alt="Foto 1 do casal">
         </div>
-    </div>
-
-    <div id="start-screen">
-        <h1>SPACE INVADERS</h1>
-        <p>A Terra precisa de você!</p>
-        <div class="controls">
-            Use as SETAS para mover<br>
-            Pressione ESPAÇO para atirar
+        
+        <div class="photo-card rotated-card">
+            <img src="2.jpeg" alt="Foto 2 do casal">
         </div>
-        <br><br>
-        <button class="restart-button" id="startButton">INICIAR JOGO</button>
+
+        <p class="love-message">
+            Juntos, a vida é mais bonita. Com todo o meu amor, para sempre.
+        </p>
     </div>
-
-    <div id="game-over-screen" style="display: none;">
-        <h1>GAME OVER</h1>
-        <p>Sua pontuação final foi: <span id="finalScoreGameOver">0</span></p>
-        <button class="restart-button" id="restartButtonGameOver">JOGAR NOVAMENTE</button>
-    </div>
-
-    <div id="game-won-screen" style="display: none;">
-        <h1>VITÓRIA!</h1>
-        <p>Você salvou a Terra!</p>
-        <p>Sua pontuação final foi: <span id="finalScoreVictory">0</span></p>
-        <button class="restart-button" id="restartButtonVictory">JOGAR NOVAMENTE</button>
-    </div>
-    
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        const scoreEl = document.getElementById('score-info');
-        const levelEl = document.getElementById('level-info');
-        const livesEl = document.getElementById('lives-info');
-        
-        const startScreen = document.getElementById('start-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const gameWonScreen = document.getElementById('game-won-screen');
-        const startButton = document.getElementById('startButton');
-        
-        const restartButtonGameOver = document.getElementById('restartButtonGameOver');
-        const restartButtonVictory = document.getElementById('restartButtonVictory');
-        const finalScoreGameOver = document.getElementById('finalScoreGameOver');
-        const finalScoreVictory = document.getElementById('finalScoreVictory');
-
-        const laserShotSound = document.getElementById('laserShot');
-        const explosionSound = document.getElementById('explosion');
-        const startSound = document.getElementById('startSound');
-
-        let score = 0;
-        let level = 1;
-        let playerLives = 5;
-        let gameRunning = false;
-        let animationFrameId;
-        let enemyShootInterval;
-
-        let lastTime = 0;
-        let accumulatedTime = 0;
-        const targetFPS = 60;
-        const timeStep = 1000 / targetFPS;
-
-        let isFlashing = false;
-        let flashTimer = 0;
-        const flashDuration = 500; // 0.5 segundos
-
-        const player = {
-            x: canvas.width / 2 - 25,
-            y: canvas.height - 60,
-            width: 50,
-            height: 30,
-            speed: 300,
-            color: '#00ff00'
-        };
-        
-        const keysPressed = new Set();
-
-        let bullets = [];
-        const bulletSpeed = 600;
-        let lastShot = 0;
-
-        let invaders = [];
-        const invaderRows = 4;
-        const invaderCols = 8;
-        const invaderWidth = 40;
-        const invaderHeight = 30;
-        const invaderPadding = 20;
-        const invaderOffsetTop = 50;
-        const invaderOffsetLeft = 60;
-        let invaderSpeed = 50;
-        let invaderDirection = 1;
-
-        let enemyBullets = [];
-        const enemyBulletSpeed = 300;
-        
-        function playSound(audioElement) {
-            audioElement.currentTime = 0;
-            audioElement.volume = 0.7;
-            audioElement.play();    
-        }
-
-        function playStartSound() {
-            startSound.play();
-        }
-
-        function drawPlayer() {
-            if (isFlashing) {
-                const now = performance.now();
-                if (Math.floor((now - flashTimer) / 100) % 2 === 0) {
-                    return; // Esconde a nave para o efeito de piscar
-                }
-            }
-
-            ctx.fillStyle = player.color;
-            ctx.beginPath();
-            ctx.moveTo(player.x + player.width / 2, player.y);
-            ctx.lineTo(player.x, player.y + player.height);
-            ctx.lineTo(player.x + player.width, player.y + player.height);
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = '#000';
-            ctx.fillRect(player.x + player.width / 2 - 5, player.y + 10, 10, 10);
-        }
-
-        function drawLives() {
-            const lifeWidth = 20;
-            const lifeHeight = 15;
-            const startX = 15;
-            const startY = canvas.height - 15;
-
-            ctx.fillStyle = '#0f0';
-            for (let i = 0; i < playerLives -1; i++) {
-                const x = startX + i * (lifeWidth + 5);
-                ctx.beginPath();
-                ctx.moveTo(x + lifeWidth / 2, startY);
-                ctx.lineTo(x, startY + lifeHeight);
-                ctx.lineTo(x + lifeWidth, startY + lifeHeight);
-                ctx.closePath();
-                ctx.fill();
-            }
-        }
-        
-        function drawBullets() {
-            ctx.fillStyle = '#ffff00';
-            bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
-        }
-        
-        function drawInvaders() {
-            invaders.forEach(inv => {
-                ctx.fillStyle = inv.color;
-                ctx.fillRect(inv.x, inv.y, inv.width, inv.height);
-                ctx.fillStyle = '#000';
-                ctx.fillRect(inv.x + 8, inv.y + 10, 5, 5);
-                ctx.fillRect(inv.x + 27, inv.y + 10, 5, 5);
-            });
-        }
-
-        function drawEnemyBullets() {
-            ctx.fillStyle = '#ff0000';
-            enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
-        }
-
-        function updateGameObjects(dt) {
-            
-            if (keysPressed.has('ArrowLeft') || keysPressed.has('a')) {
-                player.x -= player.speed * (dt / 1000);
-            }
-            if (keysPressed.has('ArrowRight') || keysPressed.has('d')) {
-                player.x += player.speed * (dt / 1000);
-            }
-            
-            if (player.x < 0) player.x = 0;
-            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-
-            if (keysPressed.has(' ') || keysPressed.has('Spacebar')) {
-                shoot();
-            }
-            
-            bullets.forEach(b => {
-                b.y -= bulletSpeed * (dt / 1000);
-                if (b.y < 0) b.toRemove = true;
-            });
-
-            let edgeReached = false;
-            invaders.forEach(inv => {
-                inv.x += invaderSpeed * invaderDirection * (dt / 1000);
-                if (inv.x + inv.width > canvas.width || inv.x < 0) {
-                    edgeReached = true;
-                }
-                if (inv.y + inv.height > player.y) {
-                    playerLives = 0;
-                }
-            });
-
-            if (edgeReached) {
-                invaderDirection *= -1;
-                invaders.forEach(inv => { inv.y += invaderHeight / 2; });
-            }
-
-            enemyBullets.forEach(b => {
-                b.y += enemyBulletSpeed * (dt / 1000);
-                if (b.y > canvas.height) b.toRemove = true;
-            });
-
-            if (isFlashing) {
-                flashTimer += dt;
-                if (flashTimer > flashDuration) {
-                    isFlashing = false;
-                    flashTimer = 0;
-                }
-            }
-        }
-
-        function shoot() {
-            const now = Date.now();
-            if (now - lastShot > 300) {
-                lastShot = now;
-                bullets.push({
-                    x: player.x + player.width / 2 - 2.5,
-                    y: player.y,
-                    width: 5,
-                    height: 15,
-                });
-                playSound(laserShotSound);
-            }
-        }
-        
-        function createInvaders() {
-            invaders = [];
-            invaderDirection = 1;
-            
-            if (level < 5) {
-                const startX = (canvas.width - invaderCols * (invaderWidth + invaderPadding)) / 2 + invaderPadding;
-                const startY = 50;
-
-                for (let c = 0; c < invaderCols; c++) {
-                    for (let r = 0; r < invaderRows; r++) {
-                        invaders.push({
-                            x: startX + c * (invaderWidth + invaderPadding),
-                            y: startY + r * (invaderHeight + invaderPadding),
-                            width: invaderWidth,
-                            height: invaderHeight,
-                            color: `hsl(${r * 30}, 100%, 50%)`
-                        });
-                    }
-                }
-            } else {
-                const numInvaders = invaderRows * invaderCols;
-                const centerX = canvas.width / 2;
-                const centerY = 200;
-                const radiusX = 250;
-                const radiusY = 100;
-
-                for (let i = 0; i < numInvaders; i++) {
-                    const angle = (i / numInvaders) * 2 * Math.PI;
-                    invaders.push({
-                        x: centerX + radiusX * Math.cos(angle) - invaderWidth / 2,
-                        y: centerY + radiusY * Math.sin(angle) - invaderHeight / 2,
-                        width: invaderWidth,
-                        height: invaderHeight,
-                        color: `hsl(${(i * 360 / numInvaders)}, 100%, 50%)`
-                    });
-                }
-            }
-        }
-
-        function enemyShoot() {
-            if (gameRunning && invaders.length > 0) {
-                const invaderColumns = invaders.reduce((acc, invader) => {
-                    const column = Math.round(invader.x / (invaderWidth + invaderPadding));
-                    if (!acc[column] || invader.y > acc[column].y) {
-                        acc[column] = invader;
-                    }
-                    return acc;
-                }, {});
-
-                const lowestInvaders = Object.values(invaderColumns);
-                const invaderToShoot = lowestInvaders[Math.floor(Math.random() * lowestInvaders.length)];
-                
-                if (invaderToShoot) {
-                    enemyBullets.push({
-                        x: invaderToShoot.x + invaderToShoot.width / 2 - 2,
-                        y: invaderToShoot.y + invaderToShoot.height,
-                        width: 4,
-                        height: 10,
-                    });
-                }
-            }
-        }
-
-        function checkCollisions() {
-            bullets.forEach(bullet => {
-                if (bullet.toRemove) return; 
-                
-                for (let j = invaders.length - 1; j >= 0; j--) {
-                    const invader = invaders[j];
-                    
-                    if (bullet.x < invader.x + invader.width &&
-                        bullet.x + bullet.width > invader.x &&
-                        bullet.y < invader.y + invader.height &&
-                        bullet.y + bullet.height > invader.y) {
-                        
-                        invader.toRemove = true; 
-                        bullet.toRemove = true; 
-                        
-                        score += 20;
-                        playSound(explosionSound);
-                        break; 
-                    }
-                }
-            });
-            
-            enemyBullets.forEach(bullet => {
-                if (bullet.toRemove) return;
-
-                if (bullet.x < player.x + player.width &&
-                    bullet.x + bullet.width > player.x &&
-                    bullet.y < player.y + player.height &&
-                    bullet.y + bullet.height > player.y) {
-                    
-                    bullet.toRemove = true;
-                    playerLives--;
-                    isFlashing = true;
-                    flashTimer = 0;
-                }
-            });
-
-            bullets = bullets.filter(b => !b.toRemove);
-            invaders = invaders.filter(i => !i.toRemove);
-            enemyBullets = enemyBullets.filter(b => !b.toRemove);
-
-            if (playerLives <= 0) {
-                playerLives = 0;
-                gameOver();
-            }
-        }
-
-        function updateUI() {
-            scoreEl.textContent = `SCORE: ${score}`;
-            levelEl.textContent = `LEVEL: ${level}`;
-            livesEl.textContent = `LIVES: ${playerLives}`;
-        }
-
-        const maxLevel = 10;
-        let nextLevelPending = false;
-
-        function nextLevel() {
-            if (level < maxLevel) {
-                level++;
-                invaderSpeed += 50;
-                bullets = [];
-                enemyBullets = [];
-                playerLives = 5; 
-                createInvaders();
-                updateUI(); 
-            } else {
-                gameWon();
-            }
-            nextLevelPending = false;
-        }
-        
-        function gameOver() {
-            if (!gameRunning) return;
-            gameRunning = false;
-            cancelAnimationFrame(animationFrameId);
-            clearInterval(enemyShootInterval);
-            finalScoreGameOver.textContent = score;
-            gameOverScreen.style.display = 'flex';
-        }
-
-        function gameWon() {
-            gameRunning = false;
-            cancelAnimationFrame(animationFrameId);
-            clearInterval(enemyShootInterval);
-            finalScoreVictory.textContent = score;
-            gameWonScreen.style.display = 'flex';
-        }
-
-        function resetGame() {
-            score = 0;
-            level = 1;
-            playerLives = 5;
-            invaderSpeed = 50;
-            bullets = [];
-            enemyBullets = [];
-            player.x = canvas.width / 2 - 25;
-            nextLevelPending = false;
-            createInvaders();
-            updateUI();
-        }
-        
-        function startGame() {
-            resetGame();
-            gameRunning = true;
-            startScreen.style.display = 'none';
-            gameOverScreen.style.display = 'none';
-            gameWonScreen.style.display = 'none';
-            clearInterval(enemyShootInterval);
-            enemyShootInterval = setInterval(enemyShoot, 1000);
-            
-            lastTime = performance.now();
-            requestAnimationFrame(gameLoop);
-            playStartSound();
-        }
-        
-        function gameLoop(currentTime) {
-            if (!gameRunning) return;
-            
-            const deltaTime = currentTime - lastTime;
-            
-            accumulatedTime += deltaTime;
-            lastTime = currentTime;
-            
-            while (accumulatedTime >= timeStep) {
-                updateGameObjects(timeStep);
-                checkCollisions();
-                accumulatedTime -= timeStep;
-            }
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawPlayer();
-            drawLives();
-            drawBullets();
-            drawInvaders();
-            drawEnemyBullets();
-            
-            updateUI();
-
-            if (invaders.length === 0 && !nextLevelPending) {
-                nextLevelPending = true;
-                setTimeout(nextLevel, 1500);
-            }
-
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        document.addEventListener('keydown', e => {
-            if (e.key === ' ' || e.key === 'Spacebar') e.preventDefault();
-            keysPressed.add(e.key);
-        });
-
-        document.addEventListener('keyup', e => {
-            keysPressed.delete(e.key);
-        });
-        
-        startButton.addEventListener('click', startGame);
-        restartButtonGameOver.addEventListener('click', startGame);
-        restartButtonVictory.addEventListener('click', startGame);
-    </script>
 </body>
+<style> body {
+    background-color: #ffe6f2; 
+    font-family: 'Dancing Script', cursive;
+    color: #333;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; 
+}
+
+.container {
+    padding: 50px 20px;
+    position: relative;
+    z-index: 2; 
+}
+
+h1 {
+    font-size: 4em;
+    color: #d8457c; 
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 0.5em;
+}
+
+p {
+    font-size: 1.5em;
+    line-height: 1.6;
+}
+
+.photo-card {
+    background: white;
+    padding: 10px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: inline-block;
+    margin: 20px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.photo-card:hover {
+    transform: scale(1.05) rotate(5deg);
+}
+
+.rotated-card {
+    transform: rotate(-5deg);
+}
+
+.rotated-card:hover {
+    transform: scale(1.05) rotate(0deg);
+}
+
+.photo-card img {
+    width: 100%;
+    max-width: 350px;
+    height: auto;
+    border-radius: 10px;
+    display: block;
+}
+
+.love-message {
+    font-size: 2em;
+    color: #e91e63;
+    margin-top: 30px;
+}
+
+
+.heart-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.heart {
+    position: absolute;
+    font-size: 2em;
+    color: #e91e63;
+    animation: floatHeart 15s ease-in-out infinite;
+    opacity: 0;
+}
+
+@keyframes floatHeart {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+
+.heart:nth-child(1) { left: 10%; animation-delay: 1s; }
+.heart:nth-child(2) { left: 20%; animation-delay: 3s; }
+.heart:nth-child(3) { left: 30%; animation-delay: 5s; }
+.heart:nth-child(4) { left: 40%; animation-delay: 7s; }
+.heart:nth-child(5) { left: 50%; animation-delay: 9s; }
+.heart:nth-child(6) { left: 60%; animation-delay: 11s; }
+.heart:nth-child(7) { left: 70%; animation-delay: 13s; }
+.heart:nth-child(8) { left: 80%; animation-delay: 15s; }
+.heart:nth-child(9) { left: 90%; animation-delay: 17s; }
+.heart:nth-child(10) { left: 5%; animation-delay: 19s; }
+</style>
 </html>
