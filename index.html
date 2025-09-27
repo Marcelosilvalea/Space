@@ -4,60 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Space Invaders</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
             background-color: #000;
             color: #fff;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
-        }
-        h1 {
-            font-size: 3rem;
             margin: 0;
+            font-family: 'Press Start 2P', cursive;
+            flex-direction: column;
+            image-rendering: pixelated;
         }
-        p {
-            font-size: 1.5rem;
-            margin: 0.5rem 0;
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 2px solid #333;
+            background-color: #0a0a0a;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
         }
-        #gameCanvas {
-            border: 1px solid #fff;
-            background-color: #000;
-        }
+
         #ui-panel {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             display: flex;
-            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+            background-color: #0a0a0a;
+            z-index: 10;
         }
-        #start-screen, #game-over-screen, #game-won-screen {
-            display: none;
+        
+        #score-info, #level-info, #lives-info {
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+            font-size: 14px;
+        }
+        
+        canvas {
+            background-color: #000;
+            display: block;
+            border-radius: 4px;
+        }
+
+        #game-over-screen, #start-screen, #game-won-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
+            z-index: 100;
         }
-        .controls {
-            font-size: 1.2rem;
-            margin: 1rem 0;
+
+        #game-over-screen h1, #start-screen h1 {
+            color: #f00;
+            font-size: 48px;
+            text-shadow: 0 0 10px #f00;
+            margin-bottom: 20px;
         }
+
+        #start-screen h1, #game-won-screen h1 {
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        #game-over-screen p, #start-screen p, #game-won-screen p {
+            font-size: 26px;
+            margin-bottom: 30px;
+        }
+
+        #start-screen .controls {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.8;
+        }
+
         .restart-button {
-            padding: 10px 20px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            background-color: #007bff;
-            color: #fff;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            color: #000;
+            background-color: #0f0;
             border: none;
+            cursor: pointer;
             border-radius: 5px;
+            text-shadow: 0 0 5px #fff;
+            box-shadow: 0 0 15px #0f0;
         }
+
         .restart-button:hover {
-            background-color: #0056b3;
+            background-color: #fff;
+            color: #000;
+            box-shadow: 0 0 25px #fff;
         }
     </style>
 </head>
 <body>
+
     <audio id="laserShot">
         <source src="laser-shot-ingame-230500.mp3" type="audio/mpeg">
     </audio>
@@ -67,6 +126,7 @@
     <audio id="startSound">
         <source src="morphed-metal-discharged-cinematic-trailer-sound-effects-124763.mp3" type="audio/mpeg">
     </audio>
+
     <div id="game-container">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div id="ui-panel">
@@ -75,6 +135,7 @@
             <div id="lives-info">LIVES: 5</div>
         </div>
     </div>
+
     <div id="start-screen">
         <h1>SPACE INVADERS</h1>
         <p>A Terra precisa de você!</p>
@@ -85,49 +146,58 @@
         <br><br>
         <button class="restart-button" id="startButton">INICIAR JOGO</button>
     </div>
+
     <div id="game-over-screen" style="display: none;">
         <h1>GAME OVER</h1>
         <p>Sua pontuação final foi: <span id="finalScoreGameOver">0</span></p>
         <button class="restart-button" id="restartButtonGameOver">JOGAR NOVAMENTE</button>
     </div>
+
     <div id="game-won-screen" style="display: none;">
         <h1>VITÓRIA!</h1>
         <p>Você salvou a Terra!</p>
         <p>Sua pontuação final foi: <span id="finalScoreVictory">0</span></p>
         <button class="restart-button" id="restartButtonVictory">JOGAR NOVAMENTE</button>
     </div>
-        <script>
+    
+    <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
         const scoreEl = document.getElementById('score-info');
         const levelEl = document.getElementById('level-info');
         const livesEl = document.getElementById('lives-info');
-
+        
         const startScreen = document.getElementById('start-screen');
         const gameOverScreen = document.getElementById('game-over-screen');
         const gameWonScreen = document.getElementById('game-won-screen');
         const startButton = document.getElementById('startButton');
-
+        
         const restartButtonGameOver = document.getElementById('restartButtonGameOver');
         const restartButtonVictory = document.getElementById('restartButtonVictory');
         const finalScoreGameOver = document.getElementById('finalScoreGameOver');
         const finalScoreVictory = document.getElementById('finalScoreVictory');
+
         const laserShotSound = document.getElementById('laserShot');
         const explosionSound = document.getElementById('explosion');
         const startSound = document.getElementById('startSound');
+
         let score = 0;
         let level = 1;
         let playerLives = 5;
         let gameRunning = false;
         let animationFrameId;
         let enemyShootInterval;
+
         let lastTime = 0;
         let accumulatedTime = 0;
         const targetFPS = 60;
         const timeStep = 1000 / targetFPS;
+
         let isFlashing = false;
         let flashTimer = 0;
         const flashDuration = 500; // 0.5 segundos
+
         const player = {
             x: canvas.width / 2 - 25,
             y: canvas.height - 60,
@@ -136,11 +206,13 @@
             speed: 300,
             color: '#00ff00'
         };
-
+        
         const keysPressed = new Set();
+
         let bullets = [];
         const bulletSpeed = 600;
         let lastShot = 0;
+
         let invaders = [];
         const invaderRows = 4;
         const invaderCols = 8;
@@ -151,17 +223,20 @@
         const invaderOffsetLeft = 60;
         let invaderSpeed = 50;
         let invaderDirection = 1;
+
         let enemyBullets = [];
         const enemyBulletSpeed = 300;
-
+        
         function playSound(audioElement) {
             audioElement.currentTime = 0;
             audioElement.volume = 0.7;
-            audioElement.play();
+            audioElement.play();    
         }
+
         function playStartSound() {
             startSound.play();
         }
+
         function drawPlayer() {
             if (isFlashing) {
                 const now = performance.now();
@@ -169,6 +244,7 @@
                     return; // Esconde a nave para o efeito de piscar
                 }
             }
+
             ctx.fillStyle = player.color;
             ctx.beginPath();
             ctx.moveTo(player.x + player.width / 2, player.y);
@@ -179,11 +255,13 @@
             ctx.fillStyle = '#000';
             ctx.fillRect(player.x + player.width / 2 - 5, player.y + 10, 10, 10);
         }
+
         function drawLives() {
             const lifeWidth = 20;
             const lifeHeight = 15;
             const startX = 15;
             const startY = canvas.height - 15;
+
             ctx.fillStyle = '#0f0';
             for (let i = 0; i < playerLives -1; i++) {
                 const x = startX + i * (lifeWidth + 5);
@@ -195,12 +273,12 @@
                 ctx.fill();
             }
         }
-
+        
         function drawBullets() {
             ctx.fillStyle = '#ffff00';
             bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
         }
-
+        
         function drawInvaders() {
             invaders.forEach(inv => {
                 ctx.fillStyle = inv.color;
@@ -210,29 +288,33 @@
                 ctx.fillRect(inv.x + 27, inv.y + 10, 5, 5);
             });
         }
+
         function drawEnemyBullets() {
             ctx.fillStyle = '#ff0000';
             enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
         }
-        function updateGameObjects(dt) {
 
+        function updateGameObjects(dt) {
+            
             if (keysPressed.has('ArrowLeft') || keysPressed.has('a')) {
                 player.x -= player.speed * (dt / 1000);
             }
             if (keysPressed.has('ArrowRight') || keysPressed.has('d')) {
                 player.x += player.speed * (dt / 1000);
             }
-
+            
             if (player.x < 0) player.x = 0;
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
             if (keysPressed.has(' ') || keysPressed.has('Spacebar')) {
                 shoot();
             }
-
+            
             bullets.forEach(b => {
                 b.y -= bulletSpeed * (dt / 1000);
                 if (b.y < 0) b.toRemove = true;
             });
+
             let edgeReached = false;
             invaders.forEach(inv => {
                 inv.x += invaderSpeed * invaderDirection * (dt / 1000);
@@ -243,14 +325,17 @@
                     playerLives = 0;
                 }
             });
+
             if (edgeReached) {
                 invaderDirection *= -1;
                 invaders.forEach(inv => { inv.y += invaderHeight / 2; });
             }
+
             enemyBullets.forEach(b => {
                 b.y += enemyBulletSpeed * (dt / 1000);
                 if (b.y > canvas.height) b.toRemove = true;
             });
+
             if (isFlashing) {
                 flashTimer += dt;
                 if (flashTimer > flashDuration) {
@@ -259,6 +344,7 @@
                 }
             }
         }
+
         function shoot() {
             const now = Date.now();
             if (now - lastShot > 300) {
@@ -272,7 +358,7 @@
                 playSound(laserShotSound);
             }
         }
-
+        
         function createInvaders() {
             invaders = [];
             invaderDirection = 1;
@@ -292,6 +378,7 @@
                 }
             }
         }
+
         function enemyShoot() {
             if (gameRunning && invaders.length > 0) {
                 const invaderColumns = invaders.reduce((acc, invader) => {
@@ -301,9 +388,10 @@
                     }
                     return acc;
                 }, {});
+
                 const lowestInvaders = Object.values(invaderColumns);
                 const invaderToShoot = lowestInvaders[Math.floor(Math.random() * lowestInvaders.length)];
-
+                
                 if (invaderToShoot) {
                     enemyBullets.push({
                         x: invaderToShoot.x + invaderToShoot.width / 2 - 2,
@@ -314,71 +402,78 @@
                 }
             }
         }
+
         function checkCollisions() {
             bullets.forEach(bullet => {
-                if (bullet.toRemove) return;
-
+                if (bullet.toRemove) return; 
+                
                 for (let j = invaders.length - 1; j >= 0; j--) {
                     const invader = invaders[j];
-
+                    
                     if (bullet.x < invader.x + invader.width &&
                         bullet.x + bullet.width > invader.x &&
                         bullet.y < invader.y + invader.height &&
                         bullet.y + bullet.height > invader.y) {
-
-                        invader.toRemove = true;
-                        bullet.toRemove = true;
-
+                        
+                        invader.toRemove = true; 
+                        bullet.toRemove = true; 
+                        
                         score += 20;
                         playSound(explosionSound);
-                        break;
+                        break; 
                     }
                 }
             });
-
+            
             enemyBullets.forEach(bullet => {
                 if (bullet.toRemove) return;
+
                 if (bullet.x < player.x + player.width &&
                     bullet.x + bullet.width > player.x &&
                     bullet.y < player.y + player.height &&
                     bullet.y + bullet.height > player.y) {
-
+                    
                     bullet.toRemove = true;
                     playerLives--;
                     isFlashing = true;
                     flashTimer = 0;
                 }
             });
+
             bullets = bullets.filter(b => !b.toRemove);
             invaders = invaders.filter(i => !i.toRemove);
             enemyBullets = enemyBullets.filter(b => !b.toRemove);
+
             if (playerLives <= 0) {
                 playerLives = 0;
                 gameOver();
             }
         }
+
         function updateUI() {
             scoreEl.textContent = `SCORE: ${score}`;
             levelEl.textContent = `LEVEL: ${level}`;
             livesEl.textContent = `LIVES: ${playerLives}`;
         }
+
         const maxLevel = 10;
         let nextLevelPending = false;
+
         function nextLevel() {
             if (level < maxLevel) {
                 level++;
                 invaderSpeed += 50;
                 bullets = [];
                 enemyBullets = [];
-                playerLives = 5;
+                playerLives = 5; 
                 createInvaders();
-                updateUI();
-             } else {
+                updateUI(); 
+            } else {
                 gameWon();
             }
             nextLevelPending = false;
         }
-
+        
         function gameOver() {
             if (!gameRunning) return;
             gameRunning = false;
@@ -387,6 +482,7 @@
             finalScoreGameOver.textContent = score;
             gameOverScreen.style.display = 'flex';
         }
+
         function gameWon() {
             gameRunning = false;
             cancelAnimationFrame(animationFrameId);
@@ -394,6 +490,7 @@
             finalScoreVictory.textContent = score;
             gameWonScreen.style.display = 'flex';
         }
+
         function resetGame() {
             score = 0;
             level = 1;
@@ -406,7 +503,7 @@
             createInvaders();
             updateUI();
         }
-
+        
         function startGame() {
             resetGame();
             gameRunning = true;
@@ -415,48 +512,52 @@
             gameWonScreen.style.display = 'none';
             clearInterval(enemyShootInterval);
             enemyShootInterval = setInterval(enemyShoot, 1000);
-
+            
             lastTime = performance.now();
             requestAnimationFrame(gameLoop);
             playStartSound();
         }
-
+        
         function gameLoop(currentTime) {
             if (!gameRunning) return;
-
+            
             const deltaTime = currentTime - lastTime;
-
+            
             accumulatedTime += deltaTime;
             lastTime = currentTime;
-
+            
             while (accumulatedTime >= timeStep) {
                 updateGameObjects(timeStep);
                 checkCollisions();
                 accumulatedTime -= timeStep;
             }
-
+            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawPlayer();
             drawLives();
             drawBullets();
             drawInvaders();
             drawEnemyBullets();
-
+            
             updateUI();
+
             if (invaders.length === 0 && !nextLevelPending) {
                 nextLevelPending = true;
                 setTimeout(nextLevel, 1500);
             }
+
             animationFrameId = requestAnimationFrame(gameLoop);
         }
+
         document.addEventListener('keydown', e => {
             if (e.key === ' ' || e.key === 'Spacebar') e.preventDefault();
             keysPressed.add(e.key);
         });
+
         document.addEventListener('keyup', e => {
             keysPressed.delete(e.key);
         });
-
+        
         startButton.addEventListener('click', startGame);
         restartButtonGameOver.addEventListener('click', startGame);
         restartButtonVictory.addEventListener('click', startGame);
